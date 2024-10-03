@@ -36,7 +36,7 @@ class LectureServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        user = new Users("Tester");
+        user = new Users(1L,"Tester");
         lecture = new Lecture("Spring Boot Lecture", 30, 0);
     }
     @Test
