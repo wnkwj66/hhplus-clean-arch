@@ -5,6 +5,7 @@ import com.hhplus_tdd_arch.lecture.domain.Users;
 import com.hhplus_tdd_arch.lecture.repository.EnrollmentRepository;
 import com.hhplus_tdd_arch.lecture.repository.LectureRepository;
 import com.hhplus_tdd_arch.lecture.repository.UsersRepository;
+import org.apache.catalina.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +57,7 @@ public class LectureServiceIntegrationTest {
         lectureRepository.deleteAll(lectureRepository.findAll());
     }
     @Test
-    void enrollToLecture_ConcurrentEnrollment() throws InterruptedException, ExecutionException {
+    void 동시에_40명_신청_통합테스트() throws InterruptedException, ExecutionException {
         // given
         int threadsNumber = 40; // 40명의 사용자가 동시에 신청
 
@@ -96,5 +97,41 @@ public class LectureServiceIntegrationTest {
         // 검증: 성공적으로 신청된 사용자 수는 30명이어야 함
         assertEquals(30, successCount.get());
         assertEquals(30, lecture.getCurrentAttendees());
+    }
+
+    @Test
+    void 동일한유저_5번신청시_1번성공_테스트() throws Exception {
+        // given
+        int requestCnt = 5;
+        Users user = userRepository.findByName("User1").get();
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(requestCnt);
+        CountDownLatch latch = new CountDownLatch(requestCnt); // 각 스레드가 끝날 때까지 대기하는 동기화 기법
+
+        // when
+        for (int i = 0; i < requestCnt; i++) {
+            executorService.execute(() -> {
+                String result = lectureService.enrollToLecture(user.getId(), lecture.getId());
+
+                if (result.equals("특강 신청이 완료되었습니다.")) {
+                    successCount.incrementAndGet(); // 성공 시 카운트 증가
+                } else if(result.equals("이미 신청한 특강입니다.")) {
+                    failCount.incrementAndGet();
+                }
+            });
+        }
+
+        latch.await(); // 모든 스레드가 작업을 끝낼 때까지 대기
+        // then
+        System.out.println("successCount : " + successCount);
+        System.out.println("failCount : " + failCount);
+        System.out.println("등록된 개수 : " + enrollmentRepository.findByUserAndLecture(user , lecture).stream().count());
+        assertEquals(1, successCount.get());
+        assertEquals(4, failCount.get());
+        assertEquals(1, enrollmentRepository.findByUserAndLecture(user,lecture).stream().count());
+
     }
 }

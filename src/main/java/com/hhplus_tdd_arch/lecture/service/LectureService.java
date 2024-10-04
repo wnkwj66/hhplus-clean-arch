@@ -38,11 +38,13 @@ public class LectureService {
         // 이미 등록된 경우 처리
         Optional<Enrollment> existingEnrollment = enrollmentRepository.findByUserAndLecture(user, lecture);
         if (existingEnrollment.isPresent()) {
+            System.out.println("이미 신청한 특강입니다.X");
             return "이미 신청한 특강입니다.";
         }
 
         // 정원이 초과된 경우 처리
         if (lecture.getCurrentAttendees() >= lecture.getMaxAttendees()) {
+            System.out.println("정원이 초과되었습니다.");
             return "정원이 초과되었습니다.";
         }
 
