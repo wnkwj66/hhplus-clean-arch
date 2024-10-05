@@ -6,6 +6,8 @@ import com.hhplus_tdd_arch.lecture.domain.Users;
 import com.hhplus_tdd_arch.lecture.repository.EnrollmentRepository;
 import com.hhplus_tdd_arch.lecture.repository.LectureRepository;
 import com.hhplus_tdd_arch.lecture.repository.UsersRepository;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,7 @@ public class LectureService {
     /**
      * 특강 신청 기능
      */
+
     @Transactional
     public String enrollToLecture(Long userId, Long lectureId) {
         Users user = userRepository.findById(userId)
@@ -55,7 +58,7 @@ public class LectureService {
         // 현재 참가자 수 증가
         lecture.increaseCurrentAttendees();
         lectureRepository.save(lecture);
-
+        System.out.println("특강 신청이 완료되었습니다.");
         return "특강 신청이 완료되었습니다.";
     }
 
